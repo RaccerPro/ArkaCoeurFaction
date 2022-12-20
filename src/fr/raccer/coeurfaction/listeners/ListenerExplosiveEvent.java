@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,6 +18,8 @@ import com.massivecraft.factions.Faction;
 import fr.raccer.coeurfaction.Main;
 import fr.raccer.coeurfaction.datafaction.CoeurFaction;
 import fr.raccer.coeurfaction.datafaction.DataCoeurFaction;
+import fr.raccer.coeurfaction.upgrades.levels.UpgradeFireBall;
+import fr.raccer.coeurfaction.upgrades.levels.UpgradeWither;
 import fr.raccer.mutilsplayers.MUtilsPlayers;
 import fr.raccer.mutilsplayers.mfactions.MFaction;
 
@@ -24,6 +27,16 @@ public class ListenerExplosiveEvent implements Listener {
 	
 	public ListenerExplosiveEvent() {}
 
+	@EventHandler
+	public void onExploseWither(EntityExplodeEvent e) {
+		
+		if(e.getEntityType() != EntityType.WITHER_SKULL && e.getEntityType() != EntityType.FIREBALL) return ;
+		
+		Entity ent = e.getEntity() ;
+		if(ent.hasMetadata(UpgradeWither.meta_data_wither)
+			|| ent.hasMetadata(UpgradeFireBall.meta_data_fireball)) e.setCancelled(true);
+	}
+	
 	@EventHandler
 	public void onExplose(EntityExplodeEvent e) {
 		

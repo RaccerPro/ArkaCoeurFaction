@@ -1,0 +1,6 @@
+name : ArkaCoeurFaction
+api : '1.8'
+version: '1.0'
+author: Raccer
+main: fr.raccer.coeurfaction.Main
+depend: ['MUtils', 'MUtilsPlayers']

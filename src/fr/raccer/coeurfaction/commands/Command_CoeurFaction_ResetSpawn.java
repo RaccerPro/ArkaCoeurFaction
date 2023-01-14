@@ -2,6 +2,7 @@ package fr.raccer.coeurfaction.commands;
 
 import org.bukkit.entity.Player;
 
+import fr.raccer.coeurfaction.Main;
 import fr.raccer.coeurfaction.datafaction.CoeurFaction;
 import fr.raccer.coeurfaction.datafaction.DataCoeurFaction;
 import fr.raccer.mutils.mcustom.mcommand.Command;
@@ -20,7 +21,7 @@ public class Command_CoeurFaction_ResetSpawn {
 		DataCoeurFaction dataCoeur = mfaction.getData(DataCoeurFaction.ID, DataCoeurFaction.class) ;
 		CoeurFaction coeur = dataCoeur.getCoeurFaction() ;
 		coeur.setTime_last_destroyed(0);
-		player.sendMessage("§aLe temps de cooldown pour faire respawn le coeur a été réinitialisé.");
+		player.sendMessage(Main.PREFIX+"§aLe temps de cooldown pour faire respawn le coeur a été réinitialisé.");
 	}
 
 }

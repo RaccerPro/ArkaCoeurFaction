@@ -14,9 +14,9 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-
+import cc.javajobs.factionsbridge.FactionsBridge;
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.FPlayer;
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.FactionsAPI;
 import fr.raccer.coeurfaction.Main;
 import fr.raccer.coeurfaction.events.CoeurFactionExecuteUpgradeEvent;
 import fr.raccer.coeurfaction.events.CoeurFactionKilledEvent;
@@ -47,6 +47,7 @@ public class CoeurFaction {
 	@Getter @Setter private HearthLevel hearthLevel ;
 	@Getter @Setter private double current_health ;
 	//@Getter @Setter private double max_health ;
+	@Getter @Setter private long time_last_notification ; // Time de la derniere notif dans le chat pour prevenir que le coeur se fait attaquer
 	
 	@Getter @Setter private int nb_bouclier ;
 	
@@ -61,6 +62,8 @@ public class CoeurFaction {
 	
 	@Getter @Setter private int nb_indice_attack ; // Sert à savoir quelle attack doit être execute
 	@Getter @Setter private List<CoeurUpgrades> list_attacks_enabled ; // Toutes les attacks pouvant être activées
+	
+	@Getter @Setter private ScheduleAutoRegeneration scheduleAutoRegeneration ;
 	
 	public CoeurFaction() {
 		id_faction = "-1" ;
@@ -80,6 +83,7 @@ public class CoeurFaction {
 		
 		nb_indice_attack = 0 ;
 		list_attacks_enabled = new LinkedList<CoeurUpgrades>() ;
+		
 	}
 	
 	public void set_faction(String id_faction) {
@@ -118,9 +122,11 @@ public class CoeurFaction {
 			hearthLevel.getTime_respawn_after_killed_minutes()*1000*60 ;
 	}
 	
-	public void spawnWithLocation(Location l) {
+	public boolean spawnWithLocation(Location l) {
 		this.mlocation = new MLocation(l.getWorld(), l.getBlockX()+0.5, l.getBlockY()+1, l.getBlockZ()+0.5) ;
-		this.spawn();
+		boolean b = this.spawn();
+		if(!b) mlocation = null ;
+		return b ;
 	}
 	
 	public String getTimeStringBeforeCanSpawn() {
@@ -145,7 +151,10 @@ public class CoeurFaction {
 		enderCrystal.setMetadata(meta_data_entity, new FixedMetadataValue(Main.instance, this));
 	}
 	
-	public void spawn() {
+	public boolean spawn() {
+		
+		if(hearthLevel == HearthLevel.Hearth_Lvl_0) return false ;
+		
 		this.current_health = hearthLevel.getMax_health() ;
 		this.setEnderCrystal(mlocation.getLocation().getWorld().spawnEntity(mlocation.getLocation(), EntityType.ENDER_CRYSTAL));
 		this.updateDisplayHealth();
@@ -166,6 +175,8 @@ public class CoeurFaction {
 				Location l = new Location(mlocation.getWorld(), loc.getBlockX()+x, loc.getBlockY(), loc.getBlockZ()+z) ;
 				l.getBlock().setType(Material.BEDROCK);
 			}
+		
+		return true ;
 	}
 	
 	
@@ -187,9 +198,15 @@ public class CoeurFaction {
 				l.getBlock().setType(Material.STONE);
 			}
 		
-		if(enderCrystal != null || !enderCrystal.isDead()) enderCrystal.remove();
+		if(scheduleAutoRegeneration != null) {
+			scheduleAutoRegeneration.cancel(); 
+			scheduleAutoRegeneration = null ;
+		}
+		
 		mlocation = null ;
-
+		if(enderCrystal == null) return ; 
+		if(!enderCrystal.isDead()) enderCrystal.remove();
+		
 	}
 	
 	public void addHealth(double health) {
@@ -214,8 +231,6 @@ public class CoeurFaction {
 		if(nb_bouclier > 0) nb_bouclier-- ;
 		else current_health -= damage ;
 		
-		
-		
 		if(current_health < 0) {
 			CoeurFactionKilledEvent ekilled = new CoeurFactionKilledEvent(mfaction, last_damager_player) ;
 			Bukkit.getPluginManager().callEvent(ekilled);
@@ -226,10 +241,16 @@ public class CoeurFaction {
 			return ;
 		}
 		
+		if(this.scheduleAutoRegeneration == null) {
+			setScheduleAutoRegeneration(new ScheduleAutoRegeneration(this));
+			int sec = Main.instance.getMconfig().getAsInt("timer_cooldown_auto_regeneration_seconds");
+			scheduleAutoRegeneration.runTaskTimer(Main.instance, 0, sec*20) ;
+		}
+		
 		this.updateDisplayHealth(); 
 		
 		if(list_attacks_enabled.isEmpty()) return ;
-		if(list_attacks_enabled.size() >= nb_indice_attack) nb_indice_attack = 0 ;
+		if(list_attacks_enabled.size() <= nb_indice_attack) nb_indice_attack = 0 ;
 		
 		this.activeAttackUpgrade() ;
 		
@@ -250,15 +271,21 @@ public class CoeurFaction {
 		Bukkit.getPluginManager().callEvent(e);
 		if(e.isCancelled()) return ;
 		
+		nb_indice_attack++ ;
 		upgrade.execute(this);
 		
 		time_last_upgrade_attack = now ;
 	}	
 	
+	public boolean isFullLife() {
+		return current_health == hearthLevel.getMax_health() ;
+	}
+	
 	
 	public boolean isSameFaction(Player player) {
-		FPlayer fp = FPlayers.getInstance().getByPlayer(player) ;
-		return fp.getFactionId().equalsIgnoreCase(id_faction) ;
+		FactionsAPI api = FactionsBridge.getFactionsAPI();
+		FPlayer fp = api.getFPlayer(player) ; 
+		return fp.getFaction().getId().equalsIgnoreCase(id_faction) ;
 	}
 	
 	
@@ -268,7 +295,7 @@ public class CoeurFaction {
 		Collection<Entity> coll = mlocation.getWorld().getNearbyEntities(mlocation.getLocation(), x, y, z) ;
 		for(Entity e : coll)
 			if(e instanceof Player 
-					//&& !this.isSameFaction((Player) e)
+					&& !this.isSameFaction((Player) e)
 				) list.add((Player) e) ;
 		
 		
@@ -307,6 +334,13 @@ public class CoeurFaction {
 		return mlocation.getBlockX()+" "+mlocation.getBlockY()+" "+mlocation.getBlockZ() ;
 	}
 	
+
+	public void update_time_last_notification() {
+		setTime_last_notification(System.currentTimeMillis());
+	}
+	public boolean doNotificationForFaction() {
+		return (System.currentTimeMillis() - time_last_notification > 1000*60) ;
+	}
 	
 	
 	

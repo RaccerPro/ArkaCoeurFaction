@@ -5,6 +5,9 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Villager;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import fr.raccer.coeurfaction.Main;
@@ -18,9 +21,11 @@ public class UpgradePNJHealer extends CoeurUpgrades {
 		
 		
 		Location loc = coeur.getMlocation().getLocation() ;
-		Entity e = loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX(), loc.getY(), loc.getZ()), EntityType.VILLAGER) ;
+		Entity e = loc.getWorld().spawnEntity(new Location(loc.getWorld(), loc.getX()+1, loc.getY(), loc.getZ()+1), EntityType.VILLAGER) ;
 		e.setCustomName("§c§lPNJ Healer");
 		e.setCustomNameVisible(true);
+		Villager villager = (Villager) e; 
+		villager.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 500, 3)) ;
 		
 		new BukkitRunnable() {
 			

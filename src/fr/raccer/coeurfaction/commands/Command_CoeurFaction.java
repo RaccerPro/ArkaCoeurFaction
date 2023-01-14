@@ -2,11 +2,11 @@ package fr.raccer.coeurfaction.commands;
 
 import org.bukkit.entity.Player;
 
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.FPlayer;
+import fr.raccer.coeurfaction.Main;
 import fr.raccer.mutils.mcustom.mcommand.Command;
 import fr.raccer.mutils.mcustom.mcommand.CommandArgs;
+import fr.raccer.mutilsplayers.utils.methods.MUtilsFactions;
 
 public class Command_CoeurFaction {
 	
@@ -14,10 +14,12 @@ public class Command_CoeurFaction {
 	public void onCoeurFaction(CommandArgs a) {
 		
 		Player player = a.getPlayer() ;
-		FPlayer fplayer = FPlayers.getInstance().getByPlayer(player) ;
+		FPlayer fplayer = MUtilsFactions.getInstance().getFPlayer(player) ;
 		
-		if(!fplayer.getFaction().getFPlayerAdmin().getAccountId().equalsIgnoreCase(fplayer.getAccountId())) {
-			player.sendMessage("§cVous n'êtes pas chef de votre faction.");
+		
+		
+		if(!fplayer.getFaction().getLeader().getName().equalsIgnoreCase(fplayer.getName())) {
+			player.sendMessage(Main.PREFIX+"§cVous n'êtes pas chef de votre faction.");
 			return ;
 		}
 		

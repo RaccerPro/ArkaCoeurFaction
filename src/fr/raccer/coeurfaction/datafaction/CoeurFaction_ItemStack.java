@@ -9,13 +9,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.FPlayer;
 import fr.raccer.mutils.mcustom.mitem.MItem;
 import fr.raccer.mutils.mcustom.usable.UsableItemStack;
 import fr.raccer.mutilsplayers.MUtilsPlayers;
 import fr.raccer.mutilsplayers.mfactions.MFaction;
+import fr.raccer.mutilsplayers.utils.methods.MUtilsFactions;
 
 public class CoeurFaction_ItemStack extends UsableItemStack {
 	
@@ -30,9 +29,15 @@ public class CoeurFaction_ItemStack extends UsableItemStack {
 		BlockPlaceEvent e = (BlockPlaceEvent) event ;
 		
 		Player p = e.getPlayer() ;
-		FPlayer fp = FPlayers.getInstance().getByPlayer(p) ;
+		FPlayer fp = MUtilsFactions.getInstance().getFPlayer(p) ;
 		
-		if(!fp.isInOwnTerritory()) {
+		if(!MUtilsFactions.getInstance().isLeader(fp)) {
+			p.sendMessage("§cSeul le chef de faction peut positionner le Coeur de Faction.");
+			e.setCancelled(true);
+			return ;
+		}
+		
+		if(!MUtilsFactions.getInstance().isInOwnTerritory(fp)) {
 			p.sendMessage("§cVous ne pouvez poser le coeur de faction uniquement dans vos claims.");
 			e.setCancelled(true);
 			return ;

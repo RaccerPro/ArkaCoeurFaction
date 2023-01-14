@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 
 import org.bukkit.Location;
 import org.bukkit.entity.EnderCrystal;
-import org.bukkit.entity.Entity;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
@@ -41,6 +41,7 @@ import fr.raccer.coeurfaction.listeners.ListenerExplosiveEvent;
 import fr.raccer.coeurfaction.listeners.ListenerFactionUnclaim;
 import fr.raccer.coeurfaction.listeners.ListenerMFactionCreate;
 import fr.raccer.coeurfaction.listeners.ListenerMFactionDisband;
+import fr.raccer.coeurfaction.messages.MessagesManager;
 import fr.raccer.coeurfaction.placeholdersapi.PlaceholderManager;
 import fr.raccer.coeurfaction.upgrades.HearthLevel;
 import fr.raccer.coeurfaction.upgrades.TypeUpgrades;
@@ -55,6 +56,8 @@ import lombok.Setter;
 
 public class Main extends MPlugin {
 
+	public static String PREFIX = "§b[§3§lCoeurFaction§b]§r " ;
+	
 	public static Main instance ;
 	@Getter @Setter private ClassementManager classementManager ;
 	@Getter @Setter private MConfig mconfig ;
@@ -107,7 +110,17 @@ public class Main extends MPlugin {
 		super.registerClassCommand(new Command_CoeurFaction_TestPlaceholders());
 		super.registerClassCommand(new Command_CoeurFaction_UpdateClassements());
 		
-		this.initEntitiesFactions() ;
+		super.getMessagesManager().register(new MessagesManager());
+		
+		new BukkitRunnable() {
+			
+			@Override
+			public void run() {
+				initEntitiesFactions() ;
+			}
+		}.runTaskLater(this, 5) ;
+		
+		
 	}
 
 	@Override
@@ -137,6 +150,9 @@ public class Main extends MPlugin {
 	private void initConfiguration() {
 		
 		mconfig.add("timer_cooldown_update_classements_minutes", 15);
+		
+		mconfig.add("timer_cooldown_auto_regeneration_seconds", 5);
+		mconfig.add("health_added_auto_regeneration", 50);
 		/*
 		mconfig.add("cost_upgrade_faction_lvl_1_pts", 50);
 		mconfig.add("cost_upgrade_faction_lvl_2_pts", 100);
@@ -186,23 +202,45 @@ public class Main extends MPlugin {
 
 	private void initEntitiesFactions() {
 		
+		//Collection<EnderCrystal> crystals = Bukkit.getWorld("Flat").getEntitiesByClass(EnderCrystal.class) ;
+		//System.out.println("Size crystals : "+crystals.size());
+		
 		for(Entry<String, MFaction> p : MUtilsPlayers.getInstance().getMfactionsManager().getMapToMFaction().entrySet()) {
 			
 			MFaction mfac = p.getValue() ;
 			DataCoeurFaction dataCoeur = mfac.getData(DataCoeurFaction.ID, DataCoeurFaction.class) ;
 			CoeurFaction coeur = dataCoeur.getCoeurFaction() ;
-			
+			/*
+			System.out.println("--------");
+			System.out.println("Mfac : "+mfac.getId());
+			*/
 			if(coeur.isSpawned()) {
 				
+				//System.out.println("Is spawned");
 				Location loc = coeur.getMlocation().getLocation() ;
-				Collection<Entity> coll = loc.getWorld().getNearbyEntities(loc, 2, 2, 2) ;
+				Collection<EnderCrystal> crystals = loc.getWorld().getEntitiesByClass(EnderCrystal.class) ;
+				//System.out.println(">> Test size : "+crystals.size());
+				//Collection<Entity> coll = loc.getWorld().getNearbyEntities(loc, 5, 5, 5) ;
 				
+				for(EnderCrystal crys : crystals) {
+					
+					//System.out.println("Distance : "+crys.getLocation().distance(loc)+" : "+crys.getLocation());
+					if(crys.getLocation().distance(loc) < 2) {
+						//System.out.println("Set endercrystal");
+						coeur.setEnderCrystal(crys);
+						break ;
+					}
+					
+				}
+				/*
 				for(Entity e : coll) {
+					System.out.println("> "+e.getType()+" : "+e.getLocation());
 					if(!(e instanceof EnderCrystal)) continue ;
+					System.out.println("Set endercrystal");
 					coeur.setEnderCrystal(e);
 					break ;
 				}
-				
+				*/
 			}
 			
 			

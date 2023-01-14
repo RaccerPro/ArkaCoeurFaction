@@ -3,10 +3,10 @@ package fr.raccer.coeurfaction.commands;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.massivecraft.factions.FPlayers;
-import com.massivecraft.factions.Faction;
-import com.massivecraft.factions.Factions;
-
+import cc.javajobs.factionsbridge.FactionsBridge;
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.Faction;
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.FactionsAPI;
+import fr.raccer.coeurfaction.Main;
 import fr.raccer.coeurfaction.datafaction.CoeurFaction;
 import fr.raccer.coeurfaction.datafaction.DataCoeurFaction;
 import fr.raccer.mutils.mcustom.mcommand.Command;
@@ -22,33 +22,35 @@ public class Command_CoeurFaction_SeePoints {
 		
 		CommandSender sender = a.getSender() ;
 		Faction fac = null ; 
+		FactionsAPI api = FactionsBridge.getFactionsAPI() ;
+		
 		
 		if(sender instanceof Player) {
-			fac = FPlayers.getInstance().getByPlayer(a.getPlayer()).getFaction() ;
+			fac = api.getFaction(a.getPlayer()) ;
 		}
 		
 		if(sender.isOp() && a.length() > 0){
 			if(a.length() != 1) {
-				sender.sendMessage("§cUsage : /coeurfaction seePoints [Nom_Faction]");
+				sender.sendMessage(Main.PREFIX+"§cUsage : /coeurfaction seePoints [Nom_Faction]");
 				return ;
 			}
-			fac = Factions.getInstance().getByTag(a.getArgs(0)) ;
+			fac = api.getFactionByTag(a.getArgs(0)) ;
 		}
 		
 		if(fac == null) {
-			sender.sendMessage("§cFaction introuvable.");
+			sender.sendMessage(Main.PREFIX+"§cFaction introuvable.");
 			return ;
 		}
 		
 		MFaction mfaction = MUtilsPlayers.getMFaction(fac) ;
 		if(mfaction == null) {
-			sender.sendMessage("§cFaction introuvable.");
+			sender.sendMessage(Main.PREFIX+"§cFaction introuvable.");
 			return ;
 		}
 		
 		DataCoeurFaction dataCoeur = mfaction.getData(DataCoeurFaction.ID, DataCoeurFaction.class) ;
 		CoeurFaction coeur = dataCoeur.getCoeurFaction() ;
-		sender.sendMessage("§6La faction "+fac.getTag()+" possède §e"+coeur.getCurrent_points_upgrades()+" points d'améliorations§6.");
+		sender.sendMessage(Main.PREFIX+"§6La faction "+fac.getTag()+" possède §e"+coeur.getCurrent_points_upgrades()+" points d'améliorations§6.");
 	}
 
 }

@@ -4,9 +4,8 @@ import java.util.List;
 
 import org.bukkit.entity.Player;
 
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.FPlayer;
+import fr.raccer.coeurfaction.Main;
 import fr.raccer.coeurfaction.datafaction.CoeurFaction;
 import fr.raccer.coeurfaction.datafaction.DataCoeurFaction;
 import fr.raccer.coeurfaction.upgrades.CoeurUpgrades;
@@ -14,6 +13,7 @@ import fr.raccer.mutils.mcustom.mcommand.Command;
 import fr.raccer.mutils.mcustom.mcommand.CommandArgs;
 import fr.raccer.mutilsplayers.MUtilsPlayers;
 import fr.raccer.mutilsplayers.mfactions.MFaction;
+import fr.raccer.mutilsplayers.utils.methods.MUtilsFactions;
 
 public class Command_CoeurFaction_SeeUpgrades {
 	
@@ -22,10 +22,10 @@ public class Command_CoeurFaction_SeeUpgrades {
 	public void onCoeurFaction(CommandArgs a) {
 				
 		Player player = a.getPlayer() ;
-		FPlayer fplayer = FPlayers.getInstance().getByPlayer(player) ;
+		FPlayer fplayer = MUtilsFactions.getInstance().getFPlayer(player) ;
 		
 		if(fplayer.getFaction().isWilderness()) {
-			player.sendMessage("§cVous devez avoir une faction pour faire cette commande.");
+			player.sendMessage(Main.PREFIX+"§cVous devez avoir une faction pour faire cette commande.");
 			return ;
 		}
 		

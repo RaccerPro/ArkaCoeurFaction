@@ -3,9 +3,10 @@ package fr.raccer.coeurfaction.commands;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.massivecraft.factions.Faction;
-import com.massivecraft.factions.Factions;
-
+import cc.javajobs.factionsbridge.FactionsBridge;
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.Faction;
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.FactionsAPI;
+import fr.raccer.coeurfaction.Main;
 import fr.raccer.coeurfaction.datafaction.CoeurFaction;
 import fr.raccer.coeurfaction.datafaction.DataCoeurFaction;
 import fr.raccer.mutils.mcustom.mcommand.Command;
@@ -22,15 +23,15 @@ public class Command_CoeurFaction_GivePoints {
 		CommandSender sender = a.getSender() ;
 		
 		if(a.length() != 2) {
-			sender.sendMessage("§cUsage : /coeurfaction givePoints [nom_faction] [nombre]");
+			sender.sendMessage(Main.PREFIX+"§cUsage : /coeurfaction givePoints [nom_faction] [nombre]");
 			return ;
 		}
-		
-		Faction fac = Factions.getInstance().getByTag(a.getArgs(0)) ;
-		MFaction mfaction = MUtilsPlayers.getMFaction(fac) ;
+		FactionsAPI api = FactionsBridge.getFactionsAPI();
+		Faction fac = api.getFactionByTag(a.getArgs(0)) ;
+		MFaction mfaction = MUtilsPlayers.getMFaction(fac.getId()) ;
 		
 		if(fac == null || mfaction == null) {
-			sender.sendMessage("§cFaction introuvable.");
+			sender.sendMessage(Main.PREFIX+"§cFaction introuvable.");
 			return ;
 		}
 		
@@ -44,7 +45,7 @@ public class Command_CoeurFaction_GivePoints {
 		coeur.givePoints(nombre);
 		
 		if(sender instanceof Player)
-			sender.sendMessage("§aLa faction "+fac.getTag()+" a reçu "+nombre+" points d'améliorations.");
+			sender.sendMessage(Main.PREFIX+"§aLa faction "+fac.getTag()+" a reçu "+nombre+" points d'améliorations.");
 	}
 
 }

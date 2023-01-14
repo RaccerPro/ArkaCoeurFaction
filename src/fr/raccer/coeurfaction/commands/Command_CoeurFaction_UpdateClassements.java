@@ -10,7 +10,7 @@ public class Command_CoeurFaction_UpdateClassements {
 	@Command(name = "coeurfaction.updateClassements", permission = "arka.coeurfaction.updateClassements")
 	public void onCoeurFaction(CommandArgs a) {
 		Main.instance.getClassementManager().update();
-		a.getSender().sendMessage("§aActualisation du classement faction avec succès.");
+		a.getSender().sendMessage(Main.PREFIX+"§aActualisation du classement faction avec succès.");
 	}
 
 }

@@ -11,10 +11,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
 import com.google.gson.JsonArray;
-import com.massivecraft.factions.Board;
-import com.massivecraft.factions.FLocation;
-import com.massivecraft.factions.Faction;
 
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.Faction;
 import fr.raccer.coeurfaction.Main;
 import fr.raccer.coeurfaction.datafaction.CoeurFaction;
 import fr.raccer.coeurfaction.datafaction.DataCoeurFaction;
@@ -22,6 +20,7 @@ import fr.raccer.coeurfaction.upgrades.levels.UpgradeFireBall;
 import fr.raccer.coeurfaction.upgrades.levels.UpgradeWither;
 import fr.raccer.mutilsplayers.MUtilsPlayers;
 import fr.raccer.mutilsplayers.mfactions.MFaction;
+import fr.raccer.mutilsplayers.utils.methods.MUtilsFactions;
 
 public class ListenerExplosiveEvent implements Listener {
 	
@@ -51,7 +50,7 @@ public class ListenerExplosiveEvent implements Listener {
 		
 		for(Block b : e.blockList()) {
 			
-			Faction fac = Board.getInstance().getFactionAt(new FLocation(b)) ;
+			Faction fac = MUtilsFactions.getInstance().getFactionAt(b.getChunk()) ;
 			if(fac.isWilderness() || fac.isSafeZone() || fac.isWarZone()) continue ;
 			MFaction mfac = MUtilsPlayers.getMFaction(fac) ;
 			CoeurFaction coeur = mfac.getData(DataCoeurFaction.ID, DataCoeurFaction.class).getCoeurFaction() ;

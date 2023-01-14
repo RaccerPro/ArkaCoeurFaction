@@ -25,7 +25,7 @@ public class UpgradeCactus extends CoeurUpgrades {
 			@Override
 			public void run() {
 				
-				Collection<Entity> coll = loc.getWorld().getNearbyEntities(loc, 2, 2, 2) ;
+				Collection<Entity> coll = loc.getWorld().getNearbyEntities(loc, 5, 5, 5) ;
 				
 				for(Entity e : coll) {
 					if(!(e instanceof Player)) continue ;

@@ -2,17 +2,18 @@ package fr.raccer.coeurfaction.commands;
 
 import org.bukkit.entity.Player;
 
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.FPlayers;
-
+import cc.javajobs.factionsbridge.bridge.infrastructure.struct.FPlayer;
 import fr.raccer.coeurfaction.datafaction.CoeurFaction;
 import fr.raccer.coeurfaction.datafaction.DataCoeurFaction;
+import fr.raccer.coeurfaction.messages.MessagesManager.M;
 import fr.raccer.coeurfaction.upgrades.CoeurUpgrades;
 import fr.raccer.coeurfaction.upgrades.TypeUpgrades;
 import fr.raccer.mutils.mcustom.mcommand.Command;
 import fr.raccer.mutils.mcustom.mcommand.CommandArgs;
 import fr.raccer.mutilsplayers.MUtilsPlayers;
 import fr.raccer.mutilsplayers.mfactions.MFaction;
+import fr.raccer.mutilsplayers.mplayers.MPlayer;
+import fr.raccer.mutilsplayers.utils.methods.MUtilsFactions;
 
 public class Command_CoeurFaction_Remove {
 	
@@ -20,63 +21,64 @@ public class Command_CoeurFaction_Remove {
 	@Command(name = "coeurfaction.remove", permission = "arka.coeurfaction.remove", inGameOnly = true)
 	public void onCoeurFaction(CommandArgs a) {
 		
-		Player player = a.getPlayer() ;
-		FPlayer fplayer = FPlayers.getInstance().getByPlayer(player) ;
+		Player pl = a.getPlayer() ;
+		MPlayer player = MUtilsPlayers.getMPlayer(pl) ;
+		FPlayer fplayer = MUtilsFactions.getInstance().getFPlayer(pl) ;
 		
 		if(fplayer.getFaction().isWilderness()) {
-			player.sendMessage("§cVous devez avoir une faction pour faire cette commande.");
+			player.sendMessage(M.NEED_HAVE_A_FACTION);
 			return ;
 		}
 		
-		if(!fplayer.getFaction().getFPlayerAdmin().getAccountId().equalsIgnoreCase(fplayer.getAccountId())) {
-			player.sendMessage("§cVous n'êtes pas chef de votre faction.");
+		if(!MUtilsFactions.getInstance().isLeader(fplayer)) {
+			player.sendMessage(M.NOT_LEADER_FACTION);
 			return ;
 		}
 		
 		if(a.length() != 1) {
-			player.sendMessage("§6/coeurfaction remove [ID]");
+			player.sendMessage(M.USAGE_CMD_REMOVE);
 			return ;
 		}
 		
 		TypeUpgrades type_upgrade = TypeUpgrades.convert(a.getArgs(0)) ;
 		
 		if(type_upgrade == null ) {
-			player.sendMessage("§cID introuvable. /coeurfaction ids");
+			player.sendMessage(M.ID_NOT_FIND);
 			return ;
 		}
 		
-		MFaction mfaction = MUtilsPlayers.getMFaction(player) ;
+		MFaction mfaction = MUtilsPlayers.getMFaction(pl) ;
 		DataCoeurFaction dataCoeur = mfaction.getData(DataCoeurFaction.ID, DataCoeurFaction.class) ;
 		CoeurFaction coeur = dataCoeur.getCoeurFaction() ;
 		
 		if(!coeur.containsUpgrade(type_upgrade)) {
-			player.sendMessage("§cVous n'avez pas débloquer cette amélioration.");
+			player.sendMessage(M.UPGRADE_NOT_UNLOCKED);
 			return ;
 		}
 		
 		CoeurUpgrades upgrade = coeur.getUpgrade(type_upgrade) ;
 		if(upgrade == null) {
-			player.sendMessage("§cUne erreur est survenue.");
+			player.sendMessage(M.ERROR);
 			return ;
 		}
 		
 		int price_upgrade = upgrade.getPriceBeforeTypeUpgrade() ;
 		
 		if(price_upgrade == -1) {
-			player.sendMessage("§cCette amélioration est au minimum.");
+			player.sendMessage(M.UPGRADE_MINIMUM_LEVEL);
 			return ;
 		}
 		
 		coeur.givePoints(price_upgrade);
-		player.sendMessage("§cVous avez reçu "+price_upgrade+" points d'améliorations.");
+		player.sendMessage(M.RECEIVE_X_UPGRADE_POINTS, "\\{points\\}", ""+price_upgrade);
 		
 		upgrade.remove_level_unlock();
 		if(upgrade.getLevel_unlock_upgrade() == 0) {
 			coeur.removeUpgrade(type_upgrade);
-			player.sendMessage("§cL'amélioration "+type_upgrade.getName()+" a été supprimé.");
+			player.sendMessage(M.UPGRADE_REMOVE, "\\{upgrade_name\\}", type_upgrade.getName());
 			return ;
 		}
-		player.sendMessage("§cL'amélioration "+type_upgrade.getName()+" a été mis au niveau "+upgrade.getLevel_unlock_upgrade()+".");
+		player.sendMessage(M.UPGRADE_LEVEL_CHANGE, "\\{upgrade_name\\}", type_upgrade.getName(), "\\{upgrade_level\\}", ""+upgrade.getLevel_unlock_upgrade());
 	}
 
 }

@@ -10,7 +10,8 @@ public class Command_CoeurFaction_Reload {
 	@Command(name = "coeurfaction.reload", permission = "arka.coeurfaction.reload")
 	public void onCoeurFaction(CommandArgs a) {
 		Main.instance.loadMConfig();
-		a.getSender().sendMessage("§aConfiguration reload avec succès.");
+		Main.instance.getMessagesManager().load(Main.instance);
+		a.getSender().sendMessage(Main.PREFIX+"§aConfiguration reload avec succès.");
 	}
 
 }
